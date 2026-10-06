@@ -6,6 +6,15 @@ pipeline {
         maven 'Maven3'
     }
 
+    parameters {
+        choice(name: 'ENV', choices: ['dev', 'qa', 'staging'], description: 'Environment to test')
+    }
+
+    options {
+        timeout(time: 20, unit: 'MINUTES')
+        buildDiscarder(logRotator(numToKeepStr: '10'))
+    }
+
     triggers {
         pollSCM('H/5 * * * *')
     }
@@ -25,7 +34,7 @@ pipeline {
 
         stage('API Tests') {
             steps {
-                bat 'mvn test'
+                bat "mvn test -Denv=${params.ENV}"
             }
         }
     }
@@ -34,11 +43,8 @@ pipeline {
         always {
             junit 'target/surefire-reports/*.xml'
         }
-        success {
-            echo 'All API tests passed!'
-        }
         failure {
-            echo 'Some tests failed. Check the report.'
+            echo "Tests failed on ${params.ENV}. Build: ${env.BUILD_URL}"
         }
     }
 }
