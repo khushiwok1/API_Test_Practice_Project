@@ -42,6 +42,7 @@ pipeline {
     post {
         always {
             junit 'target/surefire-reports/*.xml'
+            allure includeProperties: false, jdk: '', results: [[path: 'target/allure-results']]
         }
         failure {
             echo "Tests failed on ${params.ENV}. Build: ${env.BUILD_URL}"
